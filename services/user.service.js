@@ -5,42 +5,44 @@
  */
 
 const User = require('../models/user').user;
-const errors = require('./errors.service');
-
 /**
  * Creates a new user account.
  * @param {string} id - The id of the user to create.
  * @param {string} email - The email of the user.
  * @param {string} password - The users's password.
- * @param {string} firstName - The user's first name.
- * @param {string} lastName - The user's last name.
+ * @param {string} name - The user's name.
  * @returns {Promise}
  */
 function createUser(
   email,
   password,
-  firstName,
-  lastName
+  name
 ) {
   const user = new User({
     email,
     password,
-    first_name: firstName,
-    last_name: lastName,
+    name,
   });
 
   return user.save();
 }
 
 /**
- * Get info about user if it's active or not.
+ * Check if user exists based on email.
  *
- * @param {String} userId The user's id
- * @returns {Promise}
+ * @param {String} email The user's name
+ * @returns {promise}
  */
-function getUserActive(userId) {
-  return User
-        .findById(userId);
+function* checkIfUserExists(email) {
+  const user = yield User
+    .findOne({
+      email,
+    });
+
+  if (user) {
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -66,11 +68,10 @@ function validateUser(email, password) {
  */
 function getProfile(userId) {
   return User
-    .find({ id: userId })
+    .findById({ _id: userId })
     .then(user => Promise.resolve({
       userId,
-      firstname: user.first_name,
-      lastname: user.last_name,
+      name: user.name,
       email: user.email,
     }));
 }
@@ -79,22 +80,23 @@ function getProfile(userId) {
  * Registers a new user within the system.
  *
  * @param {string} [options.email] - The email of the user.
- * @param {string} [options.firstName] - The first name of the user.
- * @param {string} [options.lastName] - The last name of the user.
+ * @param {string} [options.name] - The name of the user.
  * @returns {Promise}
  */
-function register(options) {
+function* register(options) {
   const email = options.email;
-  const firstName = options.firstName;
-  const lastName = options.lastName;
+  const name = options.name;
   const password = options.password;
 
-  return createUser(email, password, firstName, lastName);
+  if (yield checkIfUserExists(email)) {
+    throw new Error('User already exists');
+  } else {
+    return createUser(email, password, name);
+  }
 }
 
 module.exports = {
   validateUser,
   getProfile,
   register,
-  getUserActive,
 };

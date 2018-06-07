@@ -2,8 +2,8 @@
 
 const config = require('../config');
 const express = require('express');
-// const mw = require('./middleware');
-const errors = require('../services/errors.service');
+const co = require('co');
+const mw = require('./middleware');
 const helperService = require('../services/helper.service');
 const userService = require('../services/user.service');
 const tokenService = require('../services/tokens.service');
@@ -41,42 +41,41 @@ const router = express.Router();
  * @apiUse InvalidCredentialsError
  * @apiUse NotFoundError
  */
-router.post('/login', (req, res, next) => {
+router.post('/api/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
   if (!email || !password) {
-    return next(new errors.IllegalArgumentError());
+    res.status(400).send({ error: 'Missing email or password' });
   }
 
   userService
       .validateUser(email, password)
       .then((result) => {
-        if (!result || !result.id) throw new errors.UnauthorizedError();
+        if (!result || !result.id) return res.status(400).send({ error: 'Unauthorized credentials' });
 
         const userToken = tokenService.getAccessToken(
             result.id,
             config.authentication.secret.secretKey);
-        res.json(userToken);
-      }).catch(next);
+        return res.json(userToken);
+      }).catch(error => res.status(400).send({ error }));
 });
 
 /**
  * @apiVersion 1.0.0
  * @api {post} /register Register new user
  * @apiName registerUser
- * @apiDescription Register a new user on the platform
+ * @apiDescription Register a new user on the api
  * @apiGroup User
  *
  * @apiParam (Body) {string} email The user email
  * @apiParam (Body) {string} password The user password
- * @apiParam (Body) {string} firstname The user first name
- * @apiParam (Body) {string} lastname The user last name
+ * @apiParam (Body) {string} name The user name
  *
- * @apiUse IllegalArgumentError
- * @apiUse EmailAlreadyExistsError
+ * @apiUse Missing email
+ * @apiUse Email Exists
  *
- * @apiSuccess (Success Status Codes) 204 Register was successful.
+ * @apiSuccess (Success Status Codes) 201 Register was successful.
  * @apiExample {curl} Example
  * curl -i -X POST \
     -H "Content-Type:application/json" \
@@ -84,51 +83,83 @@ router.post('/login', (req, res, next) => {
     '{
       "email": "your@email.com",
       "password": "yourpassword123",
-      "firstname": "John",
-      "lastname": "Doe",
+      "name": "John",
     }' \
     http://localhost:8090/register
  *
+ * @apiSuccess (Success Status Codes) 201 Register was successful.
  * @apiSuccessExample {json} Success
- * HTTP/1.1 204 No Content
+   HTTP/1.1 201 Created
+ {
+     "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYmVhcmVyIiwiZXhwa..",
+ }
  */
-router.post('/register', (req, res, next) => {
-  const email = req.body.email;
-  const password = req.body.password;
-  const firstName = req.body.firstname || null;
-  const lastName = req.body.lastname || null;
+router.post('/api/register', (req, res) => {
+  co(function* register() {
+    const email = req.body.email;
+    const password = req.body.password;
+    const name = req.body.name || null;
 
-  if (!email || !password) {
-    return next(new errors.IllegalArgumentError());
-  }
+    if (!email || !password) {
+      return res.status(400).send({ error: 'Missing email' });
+    }
 
-  if (!helperService.validateEmail(email)) {
-    return next(new errors.IllegalArgumentError('email'));
-  }
+    if (!helperService.validateEmail(email)) {
+      return res.status(400).send({ error: 'Invalid email' });
+    }
 
-  if (firstName && !helperService.validateName(firstName, 20)) {
-    return next(new errors.IllegalArgumentError('firstName'));
-  }
+    if (!helperService.validateName(name, 50)) {
+      return res.status(400).send({ error: 'Invalid Name' });
+    }
 
-  if (lastName && !helperService.validateName(lastName, 30)) {
-    return next(new errors.IllegalArgumentError('lastName'));
-  }
+    if (!helperService.validatePassword(password)) {
+      return res.status(400).send({ error: 'Invalid Password' });
+    }
 
-  if (!helperService.validatePassword(password)) {
-    return next(new errors.IllegalArgumentError('password'));
-  }
+    const user = yield userService.register({
+      email,
+      name,
+      password,
+    });
 
-  userService.register({
-    email,
-    firstName,
-    lastName,
-    password,
-  }).then((result) => {
     const userToken = tokenService.getAccessToken(
-          result.id,
-          config.authentication.secret.secretKey);
-    res.json(userToken);
-  }).catch(next);
+        user.id,
+        config.authentication.secret.secretKey);
+    return res.status(config.http.statusCode.created).json(userToken);
+  }).catch(error => res.status(400).send({ error }));
 });
+
+/**
+ * @apiVersion 1.0.0
+ * @api {get} /profile Get profile
+ * @apiName getProfile
+ * @apiDescription Retrieves the profile information for the authenticated user
+ * @apiGroup User
+ *
+ * @apiUse UnauthorizedError
+ *
+ * @apiUse AuthenticateMiddleware
+ *
+ * @apiExample {curl} Example
+ * curl -i -X GET
+ *    -H "Content-Type:application/json" \
+ *    -H "Authorization:Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYmVh..." \
+ *    http://localhost:8090/profile
+ *
+ * @apiSuccess (Success Status Codes) 200 User profile retrieval was successful.
+ * @apiSuccessExample {json} Success
+ HTTP/1.1 200 OK
+ {
+  "userId": "eNAHJ4a3uxZp4",
+  "name": "test",
+  "email": "test@test.com",
+}
+ */
+router.get('/api/profile', mw.authenticate(true), (req, res, next) =>
+    userService
+        .getProfile(req.userId)
+        .then(profile => res.json(profile))
+        .catch(next)
+);
 
 module.exports = router;

@@ -2,7 +2,6 @@ const gulp = require('gulp');
 const eslint = require('gulp-eslint');
 const minimist = require('minimist');
 const mocha = require('gulp-spawn-mocha');
-const runSequence = require('run-sequence');
 
 /**
  * Lint task. It uses ESLint with Airbnb config (defined in .eslintrc)
@@ -55,8 +54,3 @@ gulp.task('mocha', () => {
           istanbul: true,
         }));
 });
-
-/**
- * The test task.
- */
-gulp.task('test', () => runSequence('lint', 'nsp', 'mocha'));

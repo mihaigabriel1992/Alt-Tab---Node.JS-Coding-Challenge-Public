@@ -13,6 +13,11 @@ const config = {
       secretKey: process.env.NODE_ACCESS_SECTRET,
     },
   },
+  http: {
+    statusCode: {
+      created: 201,
+    },
+  },
 
   port: 8090,
 };

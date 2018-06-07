@@ -2,15 +2,13 @@
 
 /* eslint max-len: ["error", 180] */
 
-const _ = require('lodash');
-
 /**
- * Unescape base64 strings
+ * UnEscape base64 strings
  *
  * @param {String} str String to be unescaped
  * @returns {String}
  */
-function base64urlUnescape(str) {
+function base64urlUnEscape(str) {
   str += new Array(5 - (str.length % 4)).join('=');
   return str.replace(/-/g, '+').replace(/_/g, '/');
 }
@@ -27,33 +25,6 @@ function validateEmail(email) {
 }
 
 /**
- * Validates an code
- *
- * @param {String} code The code to be validated
- * @returns {Boolean}
- */
-function validateCode(code) {
-  const re = /^([0-9]{4})$/;
-  return re.test(code);
-}
-
-/**
- * Validates an GoogleTrackerId
- *
- * @param {String} email The email to be validated
- * @returns {Boolean}
- */
-function validateTracker(trackerId) {
-  const re = /(UA|YT|MO)-\d+-\d+/i;
-  return re.test(trackerId);
-}
-
-function validateGender(gender) {
-  const acceptVal = ['f', 'm', '', null];
-  return _.includes(acceptVal, gender);
-}
-
-/**
  * Validates a string length
  *
  * @param {String} string The string to be validated
@@ -62,8 +33,7 @@ function validateGender(gender) {
  */
 
 function validateName(name, maxLength) {
-  const re = /^.{2,}$/;
-  if (!name || name.length > maxLength || !re.test(name)) return false;
+  if (!name || name.length > maxLength) return false;
   return true;
 }
 
@@ -79,11 +49,8 @@ function validatePassword(password) {
 }
 
 module.exports = {
-  base64urlUnescape,
+  base64urlUnEscape,
   validateEmail,
-  validateCode,
   validatePassword,
-  validateGender,
   validateName,
-  validateTracker,
 };

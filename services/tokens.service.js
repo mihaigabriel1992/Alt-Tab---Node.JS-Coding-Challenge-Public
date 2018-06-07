@@ -11,7 +11,6 @@ const helperService = require('./helper.service');
  * Validate an access token
  *
  * @param {String} token The access token to be validated.
- * @param {String} secret The shared secret used to validate the token
  * @returns {Promise}
  */
 function validateAccessToken(token) {
@@ -19,10 +18,16 @@ function validateAccessToken(token) {
   return new Promise((resolve, reject) => {
     try {
       // Get segments
-      const segments = token.split('.');
+      const bearerSegments = token.split(' ');
+      if (bearerSegments.length !== 2) return reject(401);
+      if (bearerSegments[0] !== 'Bearer') return reject(401);
+
+      // Get segments
+      const jwtToken = bearerSegments[1];
+      const segments = jwtToken.split('.');
 
       // Invalid token format
-      if (segments.length !== 3) return reject(4001);
+      if (segments.length !== 3) return reject(401);
 
       const payloadSeg = helperService.base64urlUnEscape(segments[1]);
       const payload = JSON.parse(new Buffer(payloadSeg, 'base64').toString());
@@ -38,7 +43,7 @@ function validateAccessToken(token) {
         return reject(401);
       }
 
-      const decoded = jwt.decode(token, secret + payload.user_id);
+      const decoded = jwt.decode(jwtToken, secret + payload.user_id);
 
       return resolve(decoded.user_id);
     } catch (err) {
@@ -66,7 +71,7 @@ function getAccessToken(userID, secretKey) {
 
     const secret = secretKey + userID;
 
-    return jwt.encode(payload, secret);
+    return { token: jwt.encode(payload, secret) };
   }
 
   return makeAccessToken();
