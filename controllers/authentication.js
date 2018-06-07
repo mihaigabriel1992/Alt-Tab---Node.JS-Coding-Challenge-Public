@@ -51,12 +51,14 @@ router.post('/login', (req, res, next) => {
 
   userService
       .validateUser(email, password)
-      .then(result => tokenService
-          .getAccessToken(result.id, config.authentication.secret))
-      .then((userTokens) => {
-        res.json(userTokens);
-      })
-      .catch(next);
+      .then((result) => {
+        if (!result || !result.id) throw new errors.UnauthorizedError();
+
+        const userToken = tokenService.getAccessToken(
+            result.id,
+            config.authentication.secret.secretKey);
+        res.json(userToken);
+      }).catch(next);
 });
 
 /**
@@ -121,12 +123,12 @@ router.post('/register', (req, res, next) => {
     firstName,
     lastName,
     password,
-  }).then(result => tokenService
-    .getAccessToken(result.id, config.authentication.secret))
-    .then((userTokens) => {
-      res.json(userTokens);
-    })
-    .catch(next);
+  }).then((result) => {
+    const userToken = tokenService.getAccessToken(
+          result.id,
+          config.authentication.secret.secretKey);
+    res.json(userToken);
+  }).catch(next);
 });
 
 module.exports = router;

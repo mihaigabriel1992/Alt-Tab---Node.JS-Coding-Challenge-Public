@@ -8,6 +8,10 @@ const config = {
 
   authentication: {
     accessTokenExpireTime: process.env.NODE_ACCESS_TOKEN_EXPIRE_TIME || '+30d',
+    // Generate token secret key
+    secret: {
+      secretKey: process.env.NODE_ACCESS_SECTRET,
+    },
   },
 
   port: 8090,

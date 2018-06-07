@@ -22,12 +22,14 @@ function createUser(
   firstName,
   lastName
 ) {
-  return User.create({
+  const user = new User({
     email,
     password,
     first_name: firstName,
     last_name: lastName,
   });
+
+  return user.save();
 }
 
 /**
@@ -50,14 +52,9 @@ function getUserActive(userId) {
  */
 function validateUser(email, password) {
   return User
-    .find({
+    .findOne({
       email,
       password,
-    })
-    .then((user) => {
-      if (!user || !user.id) throw new errors.UnauthorizedError();
-
-      return user;
     });
 }
 

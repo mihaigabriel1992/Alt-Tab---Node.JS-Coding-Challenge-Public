@@ -6,8 +6,6 @@ const timestamp = require('unix-timestamp');
 const jwt = require('jwt-simple');
 const config = require('../config');
 const helperService = require('./helper.service');
-const errors = require('./errors.service');
-const userService = require('./user.service');
 
 /**
  * Validate an access token
