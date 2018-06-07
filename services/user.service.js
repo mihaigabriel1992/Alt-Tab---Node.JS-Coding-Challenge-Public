@@ -7,7 +7,6 @@
 const User = require('../models/user').user;
 /**
  * Creates a new user account.
- * @param {string} id - The id of the user to create.
  * @param {string} email - The email of the user.
  * @param {string} password - The users's password.
  * @param {string} name - The user's name.
@@ -46,21 +45,6 @@ function* checkIfUserExists(email) {
 }
 
 /**
- * Check if an user is valid
- *
- * @param {String} email The user's email address
- * @param {String} password The user's password
- * @returns {Promise}
- */
-function validateUser(email, password) {
-  return User
-    .findOne({
-      email,
-      password,
-    });
-}
-
-/**
  * Gets user profile by user id.
  *
  * @param {String} userId The id of the user to get the profile for.
@@ -81,6 +65,7 @@ function getProfile(userId) {
  *
  * @param {string} [options.email] - The email of the user.
  * @param {string} [options.name] - The name of the user.
+ * @param {string} [options.password] - The password of the user.
  * @returns {Promise}
  */
 function* register(options) {
@@ -96,7 +81,6 @@ function* register(options) {
 }
 
 module.exports = {
-  validateUser,
   getProfile,
   register,
 };

@@ -1,9 +1,5 @@
 'use strict';
 
-/* eslint no-param-reassign: "off" */
-/* eslint no-shadow: "off" */
-/* eslint no-unused-vars: "off" */
-
 const _ = require('lodash');
 const tokenService = require('../services/tokens.service');
 
@@ -21,7 +17,7 @@ const tokenService = require('../services/tokens.service');
  *
  * @apiHeader {string} authorization The authorization token. This parameter can also be specified
  * as the accessToken query parameter.
- * @apiError UnauthorizedError Throws unauthorized error if the client wasn't able to authenticate
+ * @apiError UnauthorizedError Throws 401 error if the client wasn't able to authenticate
  */
 function authenticate(mandatory) {
   return (req, res, next) => {
@@ -44,8 +40,6 @@ function authenticate(mandatory) {
       return res.sendStatus(401);
     }
 
-    // by default, show only content safe for all ages
-    req.contentRating = 0;
     return next();
   };
 }

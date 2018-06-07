@@ -3,9 +3,9 @@
  */
 
 /**
- * @param {Schema} sequelize The sequelize object
- * @param {Object} DataTypes Sequelize data types
- * @returns {Model} Users Sequelize model
+ * @param {Schema} mongoose The mongoose object
+ * @param {Object} DataTypes Mongoose data types
+ * @returns {Model} User mongoose model
  */
 const mongoose = require('mongoose');
 
