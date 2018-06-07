@@ -3,21 +3,43 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node app.js",
-    "test": "mocha --recursive"
+    "start": "nodemon app.js",
+    "test-local": "gulp lint",
+    "nsp": "gulp nsp"
   },
   "dependencies": {
-    "express": "~4.11.1"
+    "body-parser": "^1.17.1",
+    "co": "4.6.0",
+    "cookie-parser": "~1.4.3",
+    "debug": "^3.1.0",
+    "express": "~4.11.1",
+    "http-errors": "~1.6.2",
+    "jade": "~1.11.0",
+    "jwt-simple": "0.5.1",
+    "lodash": "4.17.4",
+    "minimist": "latest",
+    "mongoose": "^5.1.4",
+    "morgan": "~1.9.0",
+    "unix-timestamp": "0.2.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "eslint": "3.19.0",
+    "eslint-config-airbnb": "14.1.0",
+    "eslint-plugin-import": "2.2.0",
+    "eslint-plugin-jsx-a11y": "4.0.0",
+    "eslint-plugin-react": "6.10.3",
     "gulp": "^3.9.0",
     "gulp-concat": "^2.6.0",
     "gulp-ng-annotate": "^1.1.0",
     "gulp-sourcemaps": "^1.5.2",
+    "gulp-eslint": "3.0.1",
     "gulp-uglify": "^1.2.0",
     "gulp-watch": "^4.3.4",
+    "gulp-spawn-mocha": "3.3.0",
     "mocha": "^2.4.5",
+    "nodemon": "1.11.0",
+    "run-sequence": "1.2.2",
     "supertest": "^1.2.0",
     "supertest-as-promised": "^3.1.0"
   }

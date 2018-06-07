@@ -1,0 +1,23 @@
+{
+  "extends": "airbnb",
+  "parserOptions": {
+    "ecmaVersion": 6
+  },
+  "rules": {
+    "comma-dangle": ["error", "always-multiline"],
+    "new-cap": "off",
+    "no-console": "off",
+    "consistent-return": "off",
+    "no-param-reassign": "off",
+    "strict": "off",
+    "no-shadow": [
+      "error",
+      {
+        "allow": [
+          "err", "cb"
+        ]
+      }
+    ],
+    "import/no-dynamic-require": "off"
+  }
+}

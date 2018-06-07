@@ -1,23 +1,62 @@
-var gulp = require('gulp');
-var concat = require('gulp-concat');
-var uglify = require('gulp-uglify');
-var watch = require('gulp-watch');
-var sourcemaps = require('gulp-sourcemaps');
+const gulp = require('gulp');
+const eslint = require('gulp-eslint');
+const minimist = require('minimist');
+const mocha = require('gulp-spawn-mocha');
+const runSequence = require('run-sequence');
 
-gulp.task('scripts', function () {
-  gulp.src(['./app_client/**/*.js', '!./app_client/**/*.test.js', '!./app_client/app.min.js'])
-    .pipe(sourcemaps.init())
-    .pipe(concat('./app.min.js'))
-    .pipe(uglify({mangle: true}))
-    .pipe(gulp.dest('app_client'))
-    .pipe(sourcemaps.write('./'))
-    .pipe(gulp.dest('app_client'));
+/**
+ * Lint task. It uses ESLint with Airbnb config (defined in .eslintrc)
+ */
+
+gulp.task('lint', () => {
+    /**
+     * Command line arguments
+     *
+     * @usage gulp lint -f path/to/file/to/lint
+     */
+  const argv = minimist(process.argv.slice(2));
+
+    // Files to lint if no arguments are passed to `gulp lint`
+  const files = [
+        // Ignore node_modules
+    '!node_modules/**',
+    '!stress-test/**',
+
+    'services/*.js',
+    'controllers/*.js',
+    'models/*.js',
+    'test/*.js',
+  ];
+
+    // Lint files passed as arguments or use the ones defined above
+  const filesToLint = typeof argv.f === 'string'
+        ? argv.f
+        : files;
+
+  return gulp.src(filesToLint)
+        .pipe(eslint())
+        .pipe(eslint.format())
+        .pipe(eslint.failAfterError());
 });
 
-gulp.task('watch', function () {
-  watch(['./app_client/**/*.js', '!./app_client/**/*.test.js', '!./app_client/app.min.js'], function () {
-    gulp.start('scripts');
-  });
+/**
+ * Runs the mocha tests.
+ */
+gulp.task('mocha', () => {
+    // tests to run
+  const files = [
+    'test/*.spec.js',
+  ];
+
+  return gulp.src(files)
+        .pipe(mocha({
+          timeout: 60000,
+          reporter: 'spec',
+          istanbul: true,
+        }));
 });
 
-gulp.task('default', ['scripts', 'watch']);
+/**
+ * The test task.
+ */
+gulp.task('test', () => runSequence('lint', 'nsp', 'mocha'));
